@@ -1,4 +1,4 @@
-# 3d_Measurment_Software_v02 — 3D Modeler & Volume Calculator
+# 3d_Measurment_Software_v02
 
 A small 3D modeler written in pure Python (NumPy + Matplotlib). Add primitive shapes, extrusions and revolved profiles, move and rotate them, combine them with simple boolean operations, and see each object's volume and the scene total.
 
@@ -11,9 +11,7 @@ It runs two ways from the same Python file:
 
 ## ▶ Try it online
 
-**https://YOUR-USERNAME.github.io/3d_Measurment_Software_v02/**
-
-*(Replace with your own link after enabling GitHub Pages — see below.)*
+**[https://siamchowdhury-1.github.io/3d_Measurment_Software_v02/](https://siamchowdhury-1.github.io/3d_Measurment_Software_v02/)**
 
 The first visit downloads about 15 MB (the Python runtime plus NumPy and Matplotlib). After that the browser caches it and startup is much faster.
 
@@ -45,7 +43,7 @@ Any change you push to the `.py` file (new shapes, fixed formulas) shows up in t
 2. In the repo, go to **Settings → Pages**.
 3. Under **Build and deployment**, set **Source** to *Deploy from a branch*, choose **main** and **/ (root)**, then **Save**.
 4. Wait a minute or two. Your link appears at the top of the Pages settings:
-   `https://YOUR-USERNAME.github.io/3d_Measurment_Software_v02/`
+   `https://siamchowdhury-1.github.io/3d_Measurment_Software_v02/`
 5. Paste that link into the "Try it online" section of this README.
 
 Or with git:
@@ -55,7 +53,7 @@ git init
 git add .
 git commit -m "3Dmixer desktop + web version"
 git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/3d_Measurment_Software_v02.git
+git remote add origin https://github.com/siamchowdhury-1/3d_Measurment_Software_v02.git
 git push -u origin main
 ```
 
