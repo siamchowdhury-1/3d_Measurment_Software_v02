@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>3D Measurement Software</title>
-<meta name="description" content="3Dmixer parametric 3D modeler and volume calculator, running the original Python program in your browser.">
+<title>3d_Measurment_Software_v02</title>
+<meta name="description" content="3d_Measurment_Software_v02: parametric 3D modeler and volume calculator, running the original Python program in your browser.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@ button{cursor:pointer}
 header{display:flex;align-items:center;gap:16px;padding:10px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0b0f15,#080b10)}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .logo{width:30px;height:30px;flex:none}
-.brand h1{font-size:17px;font-weight:700;margin:0;letter-spacing:-.01em;white-space:nowrap}
+.brand h1{font-size:16px;font-weight:700;margin:0;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .brand h1 span{color:var(--accent)}
 .badge{font:500 11px var(--mono);color:var(--muted);border:1px solid var(--line-2);padding:2px 7px;border-radius:99px;white-space:nowrap}
 .spacer{flex:1}
@@ -172,7 +172,7 @@ footer a:hover{color:var(--accent)}
 <div class="loader" id="loader">
   <div class="loadcard">
     <svg class="logo" viewBox="0 0 32 32" fill="none" stroke="#3ee6b4" stroke-width="1.6" stroke-linejoin="round"><path d="M16 3 28 10v12L16 29 4 22V10z"/><path d="M4 10l12 7 12-7M16 17v12" opacity=".55"/></svg>
-    <h2>Starting 3Dmixer</h2>
+    <h2>Starting 3d_Measurment_Software_v02</h2>
     <p>Loading Python in your browser. The first visit downloads about 15&nbsp;MB; after that it's cached.</p>
     <ul class="steps" id="steps">
       <li data-k="py"><span class="ic"></span>Python runtime (Pyodide)</li>
@@ -189,7 +189,7 @@ footer a:hover{color:var(--accent)}
   <header>
     <div class="brand">
       <svg class="logo" viewBox="0 0 32 32" fill="none" stroke="#3ee6b4" stroke-width="1.6" stroke-linejoin="round"><path d="M16 3 28 10v12L16 29 4 22V10z"/><path d="M4 10l12 7 12-7M16 17v12" opacity=".55"/></svg>
-      <h1>3D<span>mixer</span></h1>
+      <h1 title="3d_Measurment_Software_v02">3d_Measurment_Software<span>_v02</span></h1>
       <span class="badge">Python · in-browser</span>
     </div>
     <div class="spacer"></div>
@@ -304,9 +304,9 @@ matplotlib.use = lambda *a, **k: None   # ignore the file's matplotlib.use("TkAg
 
 # ---- 3. Load the user's Python file unchanged -----------------------------
 def load_app_module(source, filename):
-    mod = types.ModuleType("mixer_app")
+    mod = types.ModuleType("measurement_app")
     mod.__file__ = filename
-    sys.modules["mixer_app"] = mod
+    sys.modules["measurement_app"] = mod
     exec(compile(source, filename, "exec"), mod.__dict__)
     matplotlib.use = _real_use
     return mod
@@ -315,7 +315,7 @@ import matplotlib.pyplot as plt
 
 
 class WebApp:
-    """Browser front-end that mirrors Object3DMixerApp, minus Tkinter."""
+    """Browser front-end that mirrors MeasurementSoftwareApp, minus Tkinter."""
 
     def __init__(self, mod):
         self.m = mod
@@ -735,14 +735,14 @@ $("fileIn").onchange=async e=>{
   const f=e.target.files[0]; e.target.value=""; if(!f||!app) return;
   const m=call("load_json", await f.text()); if(m){ status(m+"  ("+f.name+")"); refresh(); }
 };
-$("bSave").onclick=()=>{ const s=app&&call("save_json"); if(s){ download("scene.json",s,"application/json"); status("Saved scene.json"); } };
-$("bObj").onclick=()=>{ const s=app&&call("export_obj"); if(s){ download("scene.obj",s,"text/plain"); status("Exported scene.obj"); } };
-$("bStl").onclick=()=>{ const s=app&&call("export_stl"); if(s){ download("scene.stl",s,"model/stl"); status("Exported scene.stl"); } };
+$("bSave").onclick=()=>{ const s=app&&call("save_json"); if(s){ download("3d_Measurment_Software_v02_scene.json",s,"application/json"); status("Saved 3d_Measurment_Software_v02_scene.json"); } };
+$("bObj").onclick=()=>{ const s=app&&call("export_obj"); if(s){ download("3d_Measurment_Software_v02.obj",s,"text/plain"); status("Exported 3d_Measurment_Software_v02.obj"); } };
+$("bStl").onclick=()=>{ const s=app&&call("export_stl"); if(s){ download("3d_Measurment_Software_v02.stl",s,"model/stl"); status("Exported 3d_Measurment_Software_v02.stl"); } };
 $("bPng").onclick=()=>{
   if(!app) return; const vp=$("viewport").getBoundingClientRect();
   const b64=call("render", Math.round(vp.width), Math.round(vp.height), 200); if(!b64) return;
   const bin=atob(b64), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
-  download("3dmixer.png", new Blob([u],{type:"image/png"})); status("Saved 3dmixer.png");
+  download("3d_Measurment_Software_v02.png", new Blob([u],{type:"image/png"})); status("Saved 3d_Measurment_Software_v02.png");
 };
 document.addEventListener("keydown",e=>{
   if(!(e.ctrlKey||e.metaKey)||!app) return;
