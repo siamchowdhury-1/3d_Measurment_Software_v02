@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>3d_Measurment_Software_v02</title>
-<meta name="description" content="3d_Measurment_Software_v02: parametric 3D modeler and volume calculator, running the original Python program in your browser.">
+<title>3D Measurement Software v02</title>
+<meta name="description" content="3D Measurement Software v02: measure 3D objects (length, radius, wall thickness, volume and more) in your browser. Arkansas State University.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -37,6 +37,7 @@ header{display:flex;align-items:center;gap:16px;padding:10px 16px;border-bottom:
 .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:var(--panel-2);padding:6px 11px;border-radius:8px;font-size:13px;transition:border-color .15s,background .15s,transform .05s;white-space:nowrap}
 .btn:hover{border-color:#3d4a5e;background:#18212d}
 .btn:active{transform:translateY(1px)}
+.btn:disabled,.inp:disabled{opacity:.4;cursor:not-allowed}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 .btn.primary:hover{filter:brightness(1.08)}
 .btn.ghost{background:transparent}
@@ -108,6 +109,17 @@ textarea.inp{resize:vertical;min-height:84px;line-height:1.4}
 .mtable td:last-child{text-align:right;color:var(--text)}
 .mtable td:first-child{color:var(--muted);display:flex;align-items:center;gap:7px}
 .note{font-size:11.5px;color:var(--dim);margin-top:10px;line-height:1.5}
+select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 13px) 50%,calc(100% - 8px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:24px}
+select.inp option{background:#0a0e14}
+.nudges{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:8px}
+.nudges .btn{justify-content:center;padding:6px 0;font:12px var(--mono)}
+.nudges .wide{grid-column:span 3}
+.mbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.mbtns .btn{justify-content:center}
+.result{margin:10px 0 0;padding:10px 12px;background:#0a0e14;border:1px solid var(--line-2);border-left:3px solid var(--accent);border-radius:7px;font:13px/1.55 var(--mono);color:var(--text);white-space:pre-wrap;word-break:break-word;min-height:44px}
+.result.idle{color:var(--dim);border-left-color:var(--line-2)}
+footer .credits{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+@media (max-width:1050px){footer .credits{display:none}}
 
 footer{display:flex;align-items:center;gap:12px;padding:6px 14px;border-top:1px solid var(--line);background:#080b10;font:12px var(--mono);color:var(--muted);min-width:0}
 footer .status{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -172,7 +184,7 @@ footer a:hover{color:var(--accent)}
 <div class="loader" id="loader">
   <div class="loadcard">
     <svg class="logo" viewBox="0 0 32 32" fill="none" stroke="#3ee6b4" stroke-width="1.6" stroke-linejoin="round"><path d="M16 3 28 10v12L16 29 4 22V10z"/><path d="M4 10l12 7 12-7M16 17v12" opacity=".55"/></svg>
-    <h2>Starting 3d_Measurment_Software_v02</h2>
+    <h2>Starting 3D Measurement Software v02</h2>
     <p>Loading Python in your browser. The first visit downloads about 15&nbsp;MB; after that it's cached.</p>
     <ul class="steps" id="steps">
       <li data-k="py"><span class="ic"></span>Python runtime (Pyodide)</li>
@@ -189,7 +201,7 @@ footer a:hover{color:var(--accent)}
   <header>
     <div class="brand">
       <svg class="logo" viewBox="0 0 32 32" fill="none" stroke="#3ee6b4" stroke-width="1.6" stroke-linejoin="round"><path d="M16 3 28 10v12L16 29 4 22V10z"/><path d="M4 10l12 7 12-7M16 17v12" opacity=".55"/></svg>
-      <h1 title="3d_Measurment_Software_v02">3d_Measurment_Software<span>_v02</span></h1>
+      <h1 title="3D Measurement Software v02">3D Measurement Software <span>v02</span></h1>
       <span class="badge">Python · in-browser</span>
     </div>
     <div class="spacer"></div>
@@ -248,7 +260,37 @@ footer a:hover{color:var(--accent)}
         <div id="props"><div class="empty">Select one object to edit it.</div></div>
       </div>
       <div class="section">
-        <h2>Measurements</h2>
+        <h2>Move / Rotate</h2>
+        <div class="form" id="tform">
+          <label>position</label><div class="xyz">
+            <input class="inp" id="tx" type="number" step="any" value="0" title="X">
+            <input class="inp" id="ty" type="number" step="any" value="0" title="Y">
+            <input class="inp" id="tz" type="number" step="any" value="0" title="Z"></div>
+          <label>rotation_z°</label><input class="inp" id="tr" type="number" step="any" value="0">
+        </div>
+        <button class="btn primary apply" id="bTransform">Apply transform</button>
+        <div class="nudges">
+          <button class="btn" data-nudge="-0.1,0,0">−X</button><button class="btn" data-nudge="0.1,0,0">+X</button>
+          <button class="btn" data-nudge="0,-0.1,0">−Y</button><button class="btn" data-nudge="0,0.1,0">+Y</button>
+          <button class="btn" data-nudge="0,0,-0.1">−Z</button><button class="btn" data-nudge="0,0,0.1">+Z</button>
+          <button class="btn wide" data-spin="-15">−15°</button><button class="btn wide" data-spin="15">+15°</button>
+        </div>
+      </div>
+      <div class="section">
+        <h2>Measure</h2>
+        <div class="form">
+          <label>measure</label><select class="inp" id="mKind"></select>
+          <label>unit</label><select class="inp" id="mUnit"></select>
+        </div>
+        <div class="mbtns">
+          <button class="btn primary" id="bMeasure">Measure</button>
+          <button class="btn" id="bAllDims">All dimensions</button>
+        </div>
+        <pre class="result" id="mResult">Select an object, then Measure.</pre>
+        <div class="note">Model sizes are treated as metres and converted to the unit you pick, using the formulas in the Python file.</div>
+      </div>
+      <div class="section">
+        <h2>Scene volumes</h2>
         <div class="total"><span class="num" id="totalVol">0.000</span><span class="unit">total volume (units³)</span></div>
         <table class="mtable" id="mtable"></table>
         <div class="note">Volumes come from each shape's <code>volume()</code> in the Python file. Boolean volumes are approximate, the same as on desktop.</div>
@@ -259,6 +301,7 @@ footer a:hover{color:var(--accent)}
   <footer>
     <span class="pulse"></span>
     <span class="status" id="status">Loading…</span>
+    <span class="credits">Arkansas State University · Lead: Siam Chowdhury · Co-author: Bishal Banik · Mentor: Dr. Asif Hoda</span>
     <a id="srcLink" href="#" target="_blank" rel="noopener">view .py source</a>
   </footer>
 </div>
@@ -314,8 +357,36 @@ def load_app_module(source, filename):
 import matplotlib.pyplot as plt
 
 
+class _Var:
+    """Stands in for tk.StringVar / tk.DoubleVar."""
+    def __init__(self, value=None): self.v = value
+    def get(self): return self.v
+    def set(self, value): self.v = value
+
+
+class _TextSink:
+    """Stands in for the tk.Text measurement box and captures what's written."""
+    def __init__(self): self.text = ""
+    def configure(self, *a, **k): pass
+    def delete(self, *a): self.text = ""
+    def insert(self, _pos, s): self.text += str(s)
+
+
+# Methods borrowed from the desktop GUI class so the web page runs the same code.
+_BORROW = ("_object_dimensions", "_length_to_unit", "_volume_to_unit",
+           "calculate_measurement", "show_all_dimensions",
+           "apply_transform", "nudge_position", "nudge_rotation")
+
+
+def _find_gui_class(mod):
+    for v in vars(mod).values():
+        if isinstance(v, type) and "_object_dimensions" in v.__dict__:
+            return v
+    return None
+
+
 class WebApp:
-    """Browser front-end that mirrors MeasurementSoftwareApp, minus Tkinter."""
+    """Browser front-end that mirrors the desktop GUI class, minus Tkinter."""
 
     def __init__(self, mod):
         self.m = mod
@@ -326,6 +397,70 @@ class WebApp:
         self.zoom = 1.0
         self.fig = plt.figure(figsize=(7, 6), dpi=100)
         self.ax = self.fig.add_subplot(111, projection="3d")
+        # widget stand-ins used by the borrowed GUI methods
+        self.move_x, self.move_y, self.move_z = _Var(0.0), _Var(0.0), _Var(0.0)
+        self.rotate_z = _Var(0.0)
+        self.measure_type, self.measure_unit = _Var("Length"), _Var("mm")
+        self.measure_result = _Var("")
+        self.measure_text = _TextSink()
+        self.status = _Var("")
+        gui = _find_gui_class(mod)
+        self.has_tools = gui is not None
+        if gui is not None:
+            self.UNIT_FACTORS = dict(gui.__dict__.get("UNIT_FACTORS", {}))
+            for name in _BORROW:
+                fn = gui.__dict__.get(name)
+                if fn is not None:
+                    setattr(self, name, types.MethodType(fn, self))
+
+    # hooks the borrowed methods expect
+    def _redraw(self):
+        pass
+
+    def selected_objects(self):
+        return [self._objs()[i] for i in self.selected if 0 <= i < len(self._objs())]
+
+    def _need_one(self):
+        if len(self.selected_objects()) != 1:
+            raise ValueError("Select exactly ONE object in the Model Tree.")
+        if not self.has_tools:
+            raise ValueError("This version of the .py file has no measurement tools.")
+
+    # ---- move / rotate (desktop "Move / Rotate" panel) ---------------------
+    def transform(self, x, y, z, rot):
+        self._need_one()
+        self.move_x.set(float(x)); self.move_y.set(float(y)); self.move_z.set(float(z))
+        self.rotate_z.set(float(rot))
+        self.apply_transform()
+        return f"Moved {self.selected_objects()[0].label}."
+
+    def nudge(self, dx, dy, dz):
+        self._need_one()
+        self.nudge_position(float(dx), float(dy), float(dz))
+        return f"Nudged {self.selected_objects()[0].label}."
+
+    def spin(self, angle):
+        self._need_one()
+        self.nudge_rotation(float(angle))
+        return f"Rotated {self.selected_objects()[0].label}."
+
+    # ---- measurements (desktop "Measurements" panel) -----------------------
+    def tool_info(self):
+        return json.dumps({"enabled": self.has_tools,
+                           "units": list(getattr(self, "UNIT_FACTORS", {}))})
+
+    def measure(self, kind, unit):
+        self._need_one()
+        self.measure_type.set(kind); self.measure_unit.set(unit)
+        self.calculate_measurement()
+        return str(self.measure_result.get())
+
+    def all_dimensions(self, unit):
+        self._need_one()
+        self.measure_unit.set(unit)
+        self.measure_text.delete()
+        self.show_all_dimensions()
+        return self.measure_text.text
 
     # ---- objects -----------------------------------------------------------
     def _objs(self):
@@ -630,10 +765,42 @@ function buildStatic(){
   $("palette").innerHTML = SHAPES.map(([n,c,svg])=>
     `<button class="tool" data-add="${n}" style="--c:${c}" title="Add ${n}"><svg viewBox="0 0 24 24">${svg}</svg>${n}</button>`).join("");
   $("views").innerHTML = Object.keys(VIEWS).map(v=>`<button data-v="${v}">${v}</button>`).join("");
+  const info = JSON.parse(call("tool_info") || '{"enabled":false,"units":[]}');
+  $("mKind").innerHTML = MEASURE_KINDS.map(k=>`<option>${k}</option>`).join("");
+  $("mUnit").innerHTML = (info.units.length?info.units:["m"]).map(u=>`<option>${esc(u)}</option>`).join("");
+  if(!info.enabled){
+    ["bTransform","bMeasure","bAllDims"].forEach(id=>$(id).disabled=true);
+    setResult("This version of the .py file has no measurement tools.", true);
+  }
 }
 
+const MEASURE_KINDS = ["Length","Width","Depth","Height","Radius","Diameter","Inner Radius","Inner Diameter",
+  "Outer Radius","Outer Diameter","Wall Thickness","Position X","Position Y","Position Z","Volume"];
+const fmt = v => String(Number(Number(v).toFixed(6)));
+let lastSel = "";
+
+function setResult(text, idle=false){ const r=$("mResult"); r.textContent=text; r.classList.toggle("idle", idle); }
+
 function refresh(){
-  pull(); renderTree(); renderProps(); renderMeasure(); setView(view.elev, view.azim);
+  pull(); renderTree(); renderProps(); renderTransform(); renderMeasure(); setView(view.elev, view.azim);
+  const sel = JSON.stringify(state.selected);
+  if(sel!==lastSel){ lastSel=sel; setResult(state.selected.length===1?"Pick a measurement and press Measure.":"Select an object, then Measure.", true); }
+}
+
+function selectedObj(){ return state.selected.length===1 ? state.objects.find(o=>o.index===state.selected[0]) : null; }
+
+function renderTransform(){
+  const o=selectedObj(), on=!!o;
+  ["tx","ty","tz","tr"].forEach(id=>$(id).disabled=!on);
+  document.querySelectorAll("[data-nudge],[data-spin],#bTransform").forEach(b=>b.disabled=!on);
+  if(!o) return;
+  $("tx").value=fmt(o.position[0]); $("ty").value=fmt(o.position[1]); $("tz").value=fmt(o.position[2]); $("tr").value=fmt(o.rotation_z);
+}
+
+function runMeasure(){
+  if(!selectedObj()) return toast("Select exactly ONE object in the Model Tree.");
+  const r=call("measure", $("mKind").value, $("mUnit").value);
+  if(r!=null){ setResult(r); status("Measured "+$("mKind").value.toLowerCase()+"."); }
 }
 
 function renderTree(){
@@ -725,6 +892,25 @@ document.addEventListener("click", e=>{
     call("select", JSON.stringify(sel)); refresh();
   }
 });
+$("bTransform").onclick=()=>{
+  const v=["tx","ty","tz","tr"].map(id=>Number($(id).value));
+  if(v.some(x=>!isFinite(x)||x===null)) return toast("Position and rotation must be numbers.", true);
+  const m=call("transform",...v); if(m){status(m); refresh();}
+};
+document.querySelectorAll("#tform input").forEach(i=>i.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();$("bTransform").click();} }));
+document.addEventListener("click",e=>{
+  const n=e.target.closest("[data-nudge]"), r=e.target.closest("[data-spin]");
+  if(!app||(!n&&!r)) return;
+  const m = n ? call("nudge",...n.dataset.nudge.split(",").map(Number)) : call("spin", Number(r.dataset.spin));
+  if(m){ status(m); refresh(); }
+});
+$("bMeasure").onclick=runMeasure;
+$("mKind").onchange=()=>{ if(selectedObj()) runMeasure(); };
+$("mUnit").onchange=()=>{ if(selectedObj()) runMeasure(); };
+$("bAllDims").onclick=()=>{
+  if(!selectedObj()) return toast("Select exactly ONE object first.");
+  const t=call("all_dimensions", $("mUnit").value); if(t!=null){ setResult(t); status("Showing all dimensions."); }
+};
 $("bDel").onclick=()=>{ if(!state.selected.length) return toast("Select an object to delete."); const m=call("delete"); if(m){status(m); refresh();} };
 $("zIn").onclick=()=>setView(view.elev,view.azim,view.zoom*1.15);
 $("zOut").onclick=()=>setView(view.elev,view.azim,view.zoom/1.15);
@@ -735,14 +921,14 @@ $("fileIn").onchange=async e=>{
   const f=e.target.files[0]; e.target.value=""; if(!f||!app) return;
   const m=call("load_json", await f.text()); if(m){ status(m+"  ("+f.name+")"); refresh(); }
 };
-$("bSave").onclick=()=>{ const s=app&&call("save_json"); if(s){ download("3d_Measurment_Software_v02_scene.json",s,"application/json"); status("Saved 3d_Measurment_Software_v02_scene.json"); } };
-$("bObj").onclick=()=>{ const s=app&&call("export_obj"); if(s){ download("3d_Measurment_Software_v02.obj",s,"text/plain"); status("Exported 3d_Measurment_Software_v02.obj"); } };
-$("bStl").onclick=()=>{ const s=app&&call("export_stl"); if(s){ download("3d_Measurment_Software_v02.stl",s,"model/stl"); status("Exported 3d_Measurment_Software_v02.stl"); } };
+$("bSave").onclick=()=>{ const s=app&&call("save_json"); if(s){ download("3d_measurement_software_v02_scene.json",s,"application/json"); status("Saved 3d_measurement_software_v02_scene.json"); } };
+$("bObj").onclick=()=>{ const s=app&&call("export_obj"); if(s){ download("3d_measurement_software_v02.obj",s,"text/plain"); status("Exported 3d_measurement_software_v02.obj"); } };
+$("bStl").onclick=()=>{ const s=app&&call("export_stl"); if(s){ download("3d_measurement_software_v02.stl",s,"model/stl"); status("Exported 3d_measurement_software_v02.stl"); } };
 $("bPng").onclick=()=>{
   if(!app) return; const vp=$("viewport").getBoundingClientRect();
   const b64=call("render", Math.round(vp.width), Math.round(vp.height), 200); if(!b64) return;
   const bin=atob(b64), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
-  download("3d_Measurment_Software_v02.png", new Blob([u],{type:"image/png"})); status("Saved 3d_Measurment_Software_v02.png");
+  download("3d_measurement_software_v02.png", new Blob([u],{type:"image/png"})); status("Saved 3d_measurement_software_v02.png");
 };
 document.addEventListener("keydown",e=>{
   if(!(e.ctrlKey||e.metaKey)||!app) return;
