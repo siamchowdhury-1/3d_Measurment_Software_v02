@@ -11,7 +11,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 
 # ============================================================
-# Pure Python + NumPy + Matplotlib + Tkinter.
+# 3D Measurement Software v02
+# Lead by: Siam Chowdhury;
+# Co-auth: Bishal Banik;
+# Mentor: Dr. Asif Hoda;
+# Use: Python + NumPy + Matplotlib + Tkinter.
 # ============================================================
 
 PRIMITIVE_DEFAULTS = {
@@ -163,8 +167,6 @@ class Cylinder(Shape):
                 np.array([x[i],x[i]]),np.array([y[i],y[i]]),
                 np.array([z0,z0+self.height]),self)
             ax.plot(xx,yy,zz,color=self.color,alpha=.5)
-        X,Z=np.meshgrid(self.radius*np.cos(t),[z0,z1a[0] if False else z1])
-        Y,_=np.meshgrid(self.radius*np.sin(t),[z0,z1])
         # caps
         for zz in (z0,z1):
             cx = self.radius*np.cos(t)
@@ -408,7 +410,7 @@ class Scene:
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
         ax.set_zlabel("Z")
-        ax.set_title("3d_Measurment_Software_v02 — 3D View")
+        ax.set_title("3D Measurement Software v02")
         ax.set_box_aspect((1,1,1))
         ax.grid(True)
 
@@ -462,7 +464,7 @@ class Scene:
         # Export simple line/wire representations so every object can be
         # exported without external CAD libraries.
         with open(path,"w",encoding="utf-8") as f:
-            f.write("# 3d_Measurment_Software_v02 OBJ export\n")
+            f.write("# 3D Measurement Software v02 OBJ export\n")
             n=1
             for o in self.objects:
                 x,y,z=o.position
@@ -474,7 +476,7 @@ class Scene:
 
     def export_stl(self,path):
         with open(path,"w",encoding="utf-8") as f:
-            f.write("solid 3d_Measurment_Software_v02\n")
+            f.write("solid 3D_Measurement_Software_v02\n")
             for o in self.objects:
                 x,y,z=o.position
                 f.write(" facet normal 0 0 1\n")
@@ -484,17 +486,17 @@ class Scene:
                 f.write(f"   vertex {x} {y+0.001} {z}\n")
                 f.write("  endloop\n")
                 f.write(" endfacet\n")
-            f.write("endsolid 3d_Measurment_Software_v02\n")
+            f.write("endsolid 3D_Measurement_Software_v02\n")
 
 
 # -----------------------------
 # GUI
 # -----------------------------
 
-class MeasurementSoftwareApp(tk.Tk):
+class Object3DCalculator(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("3d_Measurment_Software_v02 — All-in-One Parametric 3D Modeler")
+        self.title("3D Measurement Software v02")
         self.geometry("1280x800")
         self.minsize(1000,650)
 
@@ -573,6 +575,8 @@ class MeasurementSoftwareApp(tk.Tk):
         self.tree.pack(fill="both",expand=True,padx=6,pady=6)
         self.tree.bind("<<TreeviewSelect>>",self.on_tree_select)
 
+
+
         center=ttk.Frame(body)
         center.pack(side="left",fill="both",expand=True)
 
@@ -593,9 +597,131 @@ class MeasurementSoftwareApp(tk.Tk):
 
         ttk.Button(right,text="Apply",command=self.apply_properties).pack(fill="x",padx=6,pady=(0,6))
 
-        ttk.Label(right,text="Measurements",font=("",10,"bold")).pack(anchor="w",padx=6,pady=(6,0))
-        self.measure_text=tk.Text(right,height=9,width=32,state="disabled",font=("Courier",9))
-        self.measure_text.pack(fill="x",padx=6,pady=6)
+        # ------------------------------------------------------------
+        # Move / Rotate panel
+        # ------------------------------------------------------------
+        ttk.Label(right,text="Move / Rotate",font=("",10,"bold")).pack(
+            anchor="w",padx=6,pady=(6,0)
+        )
+        transform_box = ttk.LabelFrame(right, text="Transform selected object")
+        transform_box.pack(fill="x", padx=6, pady=6)
+
+        self.move_x = tk.DoubleVar(value=0.0)
+        self.move_y = tk.DoubleVar(value=0.0)
+        self.move_z = tk.DoubleVar(value=0.0)
+        self.rotate_z = tk.DoubleVar(value=0.0)
+
+        for row,(label,var) in enumerate((
+            ("X", self.move_x), ("Y", self.move_y),
+            ("Z", self.move_z), ("Rotation Z (deg)", self.rotate_z),
+        )):
+            ttk.Label(transform_box,text=label).grid(row=row,column=0,sticky="w",padx=5,pady=3)
+            ttk.Entry(transform_box,textvariable=var,width=12).grid(
+                row=row,column=1,sticky="ew",padx=5,pady=3)
+        transform_box.columnconfigure(1,weight=1)
+
+        ttk.Button(transform_box,text="Apply Transform",command=self.apply_transform).grid(
+            row=4,column=0,columnspan=2,sticky="ew",padx=5,pady=(4,6))
+
+        nudge_row = ttk.Frame(transform_box)
+        nudge_row.grid(row=5,column=0,columnspan=2,sticky="ew",padx=5,pady=(0,4))
+        for label,dx,dy,dz in (
+            ("-X",-0.1,0,0), ("+X",0.1,0,0),
+            ("-Y",0,-0.1,0), ("+Y",0,0.1,0),
+            ("-Z",0,0,-0.1), ("+Z",0,0,0.1),
+        ):
+            ttk.Button(nudge_row,text=label,width=4,
+                       command=lambda dx=dx,dy=dy,dz=dz:self.nudge_position(dx,dy,dz)
+                       ).pack(side="left",padx=1)
+
+        rotate_row = ttk.Frame(transform_box)
+        rotate_row.grid(row=6,column=0,columnspan=2,sticky="ew",padx=5,pady=(0,6))
+        ttk.Button(rotate_row,text="-15°",width=6,
+                   command=lambda:self.nudge_rotation(-15)).pack(side="left",padx=1)
+        ttk.Button(rotate_row,text="+15°",width=6,
+                   command=lambda:self.nudge_rotation(15)).pack(side="left",padx=1)
+
+        # ------------------------------------------------------------
+        # Measurement panel
+        # ------------------------------------------------------------
+        ttk.Label(right,text="Measurements",font=("",10,"bold")).pack(
+            anchor="w",padx=6,pady=(6,0)
+        )
+
+        measure_box = ttk.LabelFrame(right, text="Measure selected object")
+        measure_box.pack(fill="x", padx=6, pady=6)
+
+        ttk.Label(measure_box,text="Measurement:").grid(
+            row=0,column=0,sticky="w",padx=5,pady=4
+        )
+        self.measure_type = tk.StringVar(value="Length")
+        self.measure_combo = ttk.Combobox(
+            measure_box,
+            textvariable=self.measure_type,
+            state="readonly",
+            values=[
+                "Length",
+                "Width",
+                "Depth",
+                "Height",
+                "Radius",
+                "Diameter",
+                "Inner Radius",
+                "Inner Diameter",
+                "Outer Radius",
+                "Outer Diameter",
+                "Wall Thickness",
+                "Position X",
+                "Position Y",
+                "Position Z",
+                "Volume"
+            ],
+            width=18
+        )
+        self.measure_combo.grid(row=0,column=1,sticky="ew",padx=5,pady=4)
+        self.measure_combo.bind("<<ComboboxSelected>>", lambda e: self.calculate_measurement())
+
+        ttk.Label(measure_box,text="Unit:").grid(
+            row=1,column=0,sticky="w",padx=5,pady=4
+        )
+        self.measure_unit = tk.StringVar(value="mm")
+        self.unit_combo = ttk.Combobox(
+            measure_box,
+            textvariable=self.measure_unit,
+            state="readonly",
+            values=["mm","cm","m","in","ft","yd","µm"],
+            width=18
+        )
+        self.unit_combo.grid(row=1,column=1,sticky="ew",padx=5,pady=4)
+        self.unit_combo.bind("<<ComboboxSelected>>", lambda e: self.calculate_measurement())
+
+        ttk.Button(
+            measure_box,
+            text="Measure",
+            command=self.calculate_measurement
+        ).grid(row=2,column=0,columnspan=2,sticky="ew",padx=5,pady=5)
+
+        self.measure_result = tk.StringVar(value="Select an object, then Measure.")
+        ttk.Label(
+            measure_box,
+            textvariable=self.measure_result,
+            wraplength=245,
+            justify="left"
+        ).grid(row=3,column=0,columnspan=2,sticky="w",padx=5,pady=5)
+
+        # Quick full-dimension report
+        ttk.Button(
+            measure_box,
+            text="Show All Dimensions",
+            command=self.show_all_dimensions
+        ).grid(row=4,column=0,columnspan=2,sticky="ew",padx=5,pady=(2,6))
+
+        measure_box.columnconfigure(1,weight=1)
+
+        self.measure_text=tk.Text(
+            right,height=9,width=32,state="disabled",font=("Courier",9)
+        )
+        self.measure_text.pack(fill="both",expand=True,padx=6,pady=6)
 
         self.status=tk.StringVar(value="Ready. Add a shape.")
         ttk.Label(self,textvariable=self.status,relief="sunken",anchor="w").pack(side="bottom",fill="x")
@@ -615,7 +741,16 @@ class MeasurementSoftwareApp(tk.Tk):
     def on_tree_select(self,event=None):
         self.selected_indices=[int(x) for x in self.tree.selection()]
         self._build_property_editor()
-        self._redraw()
+
+        if len(self.selected_indices) == 1:
+            obj = self.scene.objects[self.selected_indices[0]]
+
+            self.move_x.set(obj.position[0])
+            self.move_y.set(obj.position[1])
+            self.move_z.set(obj.position[2])
+            self.rotate_z.set(obj.rotation_z)
+
+            self._redraw()
 
     def selected_objects(self):
         return [self.scene.objects[i] for i in self.selected_indices
@@ -680,10 +815,68 @@ class MeasurementSoftwareApp(tk.Tk):
         self._redraw()
         self.status.set("Deleted selected objects.")
 
+    
+
     # -----------------------------
     # Properties
     # -----------------------------
+    def apply_transform(self):
+        objs = self.selected_objects()
 
+        if len(objs) != 1:
+            return
+
+        obj = objs[0]
+
+        obj.position = (
+            self.move_x.get(),
+            self.move_y.get(),
+            self.move_z.get()
+        )
+
+        obj.rotation_z = self.rotate_z.get()
+
+        self._redraw()
+
+
+    def nudge_position(self, dx, dy, dz):
+        objs = self.selected_objects()
+
+        if len(objs) != 1:
+            return
+
+        obj = objs[0]
+
+        x, y, z = obj.position
+
+        obj.position = (
+            x + dx,
+            y + dy,
+            z + dz
+        )
+
+        self.move_x.set(obj.position[0])
+        self.move_y.set(obj.position[1])
+        self.move_z.set(obj.position[2])
+
+        self._redraw()
+
+
+    def nudge_rotation(self, angle):
+        objs = self.selected_objects()
+
+        if len(objs) != 1:
+            return
+
+        obj = objs[0]
+
+        obj.rotation_z += angle
+
+        self.rotate_z.set(obj.rotation_z)
+
+        self._redraw()
+    
+    
     def _clear_property_editor(self):
         for c in self.prop_frame.winfo_children():c.destroy()
         self.property_widgets={}
@@ -781,6 +974,278 @@ class MeasurementSoftwareApp(tk.Tk):
         self.canvas.draw_idle()
 
     # -----------------------------
+    # Measurement tools
+    # -----------------------------
+
+    UNIT_FACTORS = {
+        "mm": 1000.0,
+        "cm": 100.0,
+        "m": 1.0,
+        "in": 39.37007874015748,
+        "ft": 3.280839895013123,
+        "yd": 1.0936132983377078,
+        "µm": 1_000_000.0,
+    }
+
+    def _length_to_unit(self, value_m, unit):
+        return float(value_m) * self.UNIT_FACTORS[unit]
+
+    def _volume_to_unit(self, value_m3, unit):
+        # Convert cubic meters to the selected cubic unit.
+        length_factor = self.UNIT_FACTORS[unit]
+        return float(value_m3) * (length_factor ** 3)
+
+    def _object_dimensions(self, obj):
+        """Return useful physical dimensions in meters for each supported shape."""
+        if isinstance(obj, Box):
+            return {
+                "length": abs(obj.length),
+                "width": abs(obj.width),
+                "depth": abs(obj.height),
+                "height": abs(obj.height),
+                "outer_radius": None,
+                "inner_radius": None,
+                "volume": obj.volume(),
+            }
+
+        if isinstance(obj, Sphere):
+            r = abs(obj.radius)
+            return {
+                "length": 2*r, "width": 2*r, "depth": 2*r, "height": 2*r,
+                "radius": r, "diameter": 2*r,
+                "outer_radius": r, "outer_diameter": 2*r,
+                "inner_radius": None, "inner_diameter": None,
+                "wall_thickness": None,
+                "volume": obj.volume(),
+            }
+
+        if isinstance(obj, Cylinder):
+            r, h = abs(obj.radius), abs(obj.height)
+            return {
+                "length": 2*r, "width": 2*r, "depth": h, "height": h,
+                "radius": r, "diameter": 2*r,
+                "outer_radius": r, "outer_diameter": 2*r,
+                "inner_radius": None, "inner_diameter": None,
+                "wall_thickness": None,
+                "volume": obj.volume(),
+            }
+
+        if isinstance(obj, Cone):
+            r, h = abs(obj.radius), abs(obj.height)
+            return {
+                "length": 2*r, "width": 2*r, "depth": h, "height": h,
+                "radius": r, "diameter": 2*r,
+                "outer_radius": r, "outer_diameter": 2*r,
+                "inner_radius": None, "inner_diameter": None,
+                "wall_thickness": None,
+                "volume": obj.volume(),
+            }
+
+        if isinstance(obj, Torus):
+            R, r = abs(obj.major_radius), abs(obj.minor_radius)
+            outer_r = R + r
+            inner_r = max(0.0, R-r)
+            return {
+                "length": 2*outer_r,
+                "width": 2*outer_r,
+                "depth": 2*r,
+                "height": 2*r,
+                "radius": R,
+                "diameter": 2*R,
+                "inner_radius": inner_r,
+                "inner_diameter": 2*inner_r,
+                "outer_radius": outer_r,
+                "outer_diameter": 2*outer_r,
+                "wall_thickness": 2*r,
+                "volume": obj.volume(),
+            }
+
+        if isinstance(obj, Tube):
+            ro, ri, h = abs(obj.outer_radius), abs(obj.inner_radius), abs(obj.height)
+            return {
+                "length": 2*ro,
+                "width": 2*ro,
+                "depth": h,
+                "height": h,
+                "radius": ro,
+                "diameter": 2*ro,
+                "inner_radius": ri,
+                "inner_diameter": 2*ri,
+                "outer_radius": ro,
+                "outer_diameter": 2*ro,
+                "wall_thickness": max(0.0, ro-ri),
+                "volume": obj.volume(),
+            }
+
+        if isinstance(obj, Wedge):
+            return {
+                "length": abs(obj.length),
+                "width": abs(obj.width),
+                "depth": abs(obj.height),
+                "height": abs(obj.height),
+                "volume": obj.volume(),
+            }
+
+        if isinstance(obj, Extrusion):
+            xs = [p[0] for p in obj.profile]
+            ys = [p[1] for p in obj.profile]
+            if not xs or not ys:
+                return {"volume": obj.volume()}
+            return {
+                "length": max(xs)-min(xs),
+                "width": max(ys)-min(ys),
+                "depth": abs(obj.height),
+                "height": abs(obj.height),
+                "volume": obj.volume(),
+            }
+
+        if isinstance(obj, Revolution):
+            xs = [abs(p[0]) for p in obj.profile]
+            ys = [p[1] for p in obj.profile]
+            if not xs or not ys:
+                return {"volume": obj.volume()}
+            outer_r = max(xs)
+            inner_r = min(xs)
+            return {
+                "length": 2*outer_r,
+                "width": 2*outer_r,
+                "depth": max(ys)-min(ys),
+                "height": max(ys)-min(ys),
+                "radius": outer_r,
+                "diameter": 2*outer_r,
+                "inner_radius": inner_r,
+                "inner_diameter": 2*inner_r,
+                "outer_radius": outer_r,
+                "outer_diameter": 2*outer_r,
+                "wall_thickness": max(0.0, outer_r-inner_r),
+                "volume": obj.volume(),
+            }
+
+        if isinstance(obj, BooleanShape):
+            # The lightweight BooleanShape stores the original shapes.
+            # Report the source envelope where possible.
+            da = self._object_dimensions(obj.source_a)
+            db = self._object_dimensions(obj.source_b)
+            result = {}
+            for key in ("length","width","depth","height"):
+                vals = [d[key] for d in (da,db) if d.get(key) is not None]
+                if vals:
+                    result[key] = max(vals)
+            result["volume"] = obj.volume()
+            return result
+
+        return {"volume": obj.volume()}
+
+    def calculate_measurement(self):
+        objs = self.selected_objects()
+        if len(objs) != 1:
+            self.measure_result.set("Select exactly ONE object in the Model Tree.")
+            return
+
+        obj = objs[0]
+        kind = self.measure_type.get()
+        unit = self.measure_unit.get()
+        d = self._object_dimensions(obj)
+
+        if kind == "Position X":
+            value = self._length_to_unit(obj.position[0], unit)
+            self.measure_result.set(f"{obj.label}\nX = {value:.6g} {unit}")
+            return
+        if kind == "Position Y":
+            value = self._length_to_unit(obj.position[1], unit)
+            self.measure_result.set(f"{obj.label}\nY = {value:.6g} {unit}")
+            return
+        if kind == "Position Z":
+            value = self._length_to_unit(obj.position[2], unit)
+            self.measure_result.set(f"{obj.label}\nZ = {value:.6g} {unit}")
+            return
+
+        if kind == "Volume":
+            value = d.get("volume")
+            if value is None:
+                self.measure_result.set(f"{obj.label}\nVolume = N/A")
+            else:
+                self.measure_result.set(
+                    f"{obj.label}\nVolume = {self._volume_to_unit(value, unit):.6g} {unit}³"
+                )
+            return
+
+        key_map = {
+            "Length": "length",
+            "Width": "width",
+            "Depth": "depth",
+            "Height": "height",
+            "Radius": "radius",
+            "Diameter": "diameter",
+            "Inner Radius": "inner_radius",
+            "Inner Diameter": "inner_diameter",
+            "Outer Radius": "outer_radius",
+            "Outer Diameter": "outer_diameter",
+            "Wall Thickness": "wall_thickness",
+        }
+        key = key_map[kind]
+        value = d.get(key)
+
+        if value is None:
+            self.measure_result.set(
+                f"{obj.label}\n{kind}: N/A for this object."
+            )
+            return
+
+        converted = self._length_to_unit(value, unit)
+        self.measure_result.set(
+            f"{obj.label}\n{kind} = {converted:.6g} {unit}"
+        )
+
+    def show_all_dimensions(self):
+        objs = self.selected_objects()
+        if len(objs) != 1:
+            self.measure_result.set("Select exactly ONE object first.")
+            return
+
+        obj = objs[0]
+        d = self._object_dimensions(obj)
+        unit = self.measure_unit.get()
+
+        lines = [
+            f"Object: {obj.label}",
+            f"Type: {obj.name}",
+            f"Unit: {unit}",
+            ""
+        ]
+
+        names = [
+            ("length", "Length"),
+            ("width", "Width"),
+            ("depth", "Depth"),
+            ("height", "Height"),
+            ("radius", "Radius"),
+            ("diameter", "Diameter"),
+            ("inner_radius", "Inner Radius"),
+            ("inner_diameter", "Inner Diameter"),
+            ("outer_radius", "Outer Radius"),
+            ("outer_diameter", "Outer Diameter"),
+            ("wall_thickness", "Wall Thickness"),
+        ]
+
+        for key, label in names:
+            value = d.get(key)
+            if value is not None:
+                lines.append(f"{label}: {self._length_to_unit(value, unit):.6g} {unit}")
+
+        if d.get("volume") is not None:
+            lines.append(f"Volume: {self._volume_to_unit(d['volume'], unit):.6g} {unit}³")
+
+        self.measure_text.configure(state="normal")
+        self.measure_text.delete("1.0","end")
+        self.measure_text.insert("end","\n".join(lines))
+        self.measure_text.configure(state="disabled")
+
+        self.measure_result.set(
+            f"Complete dimensions displayed for {obj.label}."
+        )
+
+    # -----------------------------
     # Files
     # -----------------------------
 
@@ -794,7 +1259,7 @@ class MeasurementSoftwareApp(tk.Tk):
             self._redraw()
 
     def open_scene(self):
-        path=filedialog.askopenfilename(filetypes=[("3d_Measurment_Software_v02 JSON","*.json")])
+        path=filedialog.askopenfilename(filetypes=[("3D Measurement Software v02 JSON","*.json")])
         if not path:return
         try:
             self.scene=Scene.load_json(path)
@@ -809,7 +1274,7 @@ class MeasurementSoftwareApp(tk.Tk):
 
     def save_scene(self):
         path=self.current_file or filedialog.asksaveasfilename(
-            defaultextension=".json",filetypes=[("3d_Measurment_Software_v02 JSON","*.json")])
+            defaultextension=".json",filetypes=[("3D Measurement Software v02 JSON","*.json")])
         if not path:return
         try:
             self.scene.save_json(path)
@@ -841,19 +1306,17 @@ class MeasurementSoftwareApp(tk.Tk):
 
     def show_about(self):
         messagebox.showinfo(
-            "About",
-            "3d_Measurment_Software_v02 — All-in-One Python 3D modeler\n\n"
-            "No extra core file is required.\n"
-            "Uses Tkinter, NumPy and Matplotlib only.\n\n"
-            "Mouse controls:\n"
-            "• Left-drag in the 3D view: rotate\n"
-            "• Toolbar controls the standard Matplotlib 3D navigation\n"
-            "• Select objects in Model Tree to edit properties."
+            "About 3D Measurement Software v02",
+            "This Software will help to calculating the Measurement of object. \n"
+            "Toolbar controls: 3D navigation and Measurements\n\n"
+            "The programmers are from Arkansas State University, AR.\n"
+                "Lead by: SIAM CHOWDHURY.\n"
+                "Co-auth: Bishal Banik.\n"
+                "Mentor: Dr. Asif Hoda.\n"
         )
 
-
 def main():
-    app=MeasurementSoftwareApp()
+    app=Object3DCalculator()
     app.mainloop()
 
 
