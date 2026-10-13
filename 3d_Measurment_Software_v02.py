@@ -408,7 +408,7 @@ class Scene:
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
         ax.set_zlabel("Z")
-        ax.set_title("3Dmixer — 3D View")
+        ax.set_title("3d_Measurment_Software_v02 — 3D View")
         ax.set_box_aspect((1,1,1))
         ax.grid(True)
 
@@ -462,7 +462,7 @@ class Scene:
         # Export simple line/wire representations so every object can be
         # exported without external CAD libraries.
         with open(path,"w",encoding="utf-8") as f:
-            f.write("# 3Dmixer OBJ export\n")
+            f.write("# 3d_Measurment_Software_v02 OBJ export\n")
             n=1
             for o in self.objects:
                 x,y,z=o.position
@@ -474,7 +474,7 @@ class Scene:
 
     def export_stl(self,path):
         with open(path,"w",encoding="utf-8") as f:
-            f.write("solid 3dmixer\n")
+            f.write("solid 3d_Measurment_Software_v02\n")
             for o in self.objects:
                 x,y,z=o.position
                 f.write(" facet normal 0 0 1\n")
@@ -484,17 +484,17 @@ class Scene:
                 f.write(f"   vertex {x} {y+0.001} {z}\n")
                 f.write("  endloop\n")
                 f.write(" endfacet\n")
-            f.write("endsolid 3dmixer\n")
+            f.write("endsolid 3d_Measurment_Software_v02\n")
 
 
 # -----------------------------
 # GUI
 # -----------------------------
 
-class Object3DMixerApp(tk.Tk):
+class MeasurementSoftwareApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("3Dmixer — All-in-One Parametric 3D Modeler")
+        self.title("3d_Measurment_Software_v02 — All-in-One Parametric 3D Modeler")
         self.geometry("1280x800")
         self.minsize(1000,650)
 
@@ -794,7 +794,7 @@ class Object3DMixerApp(tk.Tk):
             self._redraw()
 
     def open_scene(self):
-        path=filedialog.askopenfilename(filetypes=[("3Dmixer JSON","*.json")])
+        path=filedialog.askopenfilename(filetypes=[("3d_Measurment_Software_v02 JSON","*.json")])
         if not path:return
         try:
             self.scene=Scene.load_json(path)
@@ -809,7 +809,7 @@ class Object3DMixerApp(tk.Tk):
 
     def save_scene(self):
         path=self.current_file or filedialog.asksaveasfilename(
-            defaultextension=".json",filetypes=[("3Dmixer JSON","*.json")])
+            defaultextension=".json",filetypes=[("3d_Measurment_Software_v02 JSON","*.json")])
         if not path:return
         try:
             self.scene.save_json(path)
@@ -842,8 +842,8 @@ class Object3DMixerApp(tk.Tk):
     def show_about(self):
         messagebox.showinfo(
             "About",
-            "3Dmixer — All-in-One Python 3D modeler\n\n"
-            "No threedmixer_core.py is required.\n"
+            "3d_Measurment_Software_v02 — All-in-One Python 3D modeler\n\n"
+            "No extra core file is required.\n"
             "Uses Tkinter, NumPy and Matplotlib only.\n\n"
             "Mouse controls:\n"
             "• Left-drag in the 3D view: rotate\n"
@@ -853,7 +853,7 @@ class Object3DMixerApp(tk.Tk):
 
 
 def main():
-    app=Object3DMixerApp()
+    app=MeasurementSoftwareApp()
     app.mainloop()
 
 
