@@ -3,7 +3,7 @@
 Software for calculating the measurements of 3D objects, written in pure Python (NumPy + Matplotlib). Build objects from primitive shapes, extrusions and revolved profiles, move and rotate them, and measure length, width, height, radius, diameter, wall thickness, position and volume in the unit you choose.
 **Developers**
 | Role | Name |
-|---|---|
+|------|------|
 | Lead | Siam Chowdhury |
 | Co-author | Bishal Banik |
 | Mentor | Dr. Asif Hoda |
