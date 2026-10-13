@@ -51,7 +51,7 @@ Or with git:
 ```bash
 git init
 git add .
-git commit -m "3Dmixer desktop + web version"
+git commit -m "3d_Measurment_Software_v02 desktop + web version"
 git branch -M main
 git remote add origin https://github.com/siamchowdhury-1/3d_Measurment_Software_v02.git
 git push -u origin main
