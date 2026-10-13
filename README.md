@@ -1,13 +1,13 @@
 # 3D Measurement Software v02
 
 Software for calculating the measurements of 3D objects, written in pure Python (NumPy + Matplotlib). Build objects from primitive shapes, extrusions and revolved profiles, move and rotate them, and measure length, width, height, radius, diameter, wall thickness, position and volume in the unit you choose.
-Developer:
+**Developers**
 | Role | Name |
 |---|---|
 | Lead | Siam Chowdhury |
 | Co-author | Bishal Banik |
 | Mentor | Dr. Asif Hoda |
-| Arkansas State University, AR, USA |
+| Institution | Arkansas State University, AR, USA |
 
 It runs two ways from the same Python file:
 
